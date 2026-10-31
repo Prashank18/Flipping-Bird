@@ -1,61 +1,65 @@
 <div align="center">
-  <h1>Littlewing</h1>
-  <p><strong>A small bird. Six hand-drawn skies. One more try.</strong></p>
-  <p>A lovingly illustrated, browser-first Flappy-style game. No build step, no account, just open the page and fly.</p>
+  <h1>Flipping Bird</h1>
+  <p><strong>A tiny pixel bird, six skies, and always one more try.</strong></p>
+  <p>A hand-crafted, browser-first arcade game with original pixel scenes, quick controls, and a little flock of birds.</p>
   <p>
-    <img src="https://img.shields.io/badge/worlds-06-55795c?style=flat-square" alt="Six playable worlds">
-    <img src="https://img.shields.io/badge/platform-web%20%2B%20mobile-dd7d4e?style=flat-square" alt="Web and mobile">
-    <img src="https://img.shields.io/badge/license-MIT-778f6d?style=flat-square" alt="MIT license">
+    <img src="https://img.shields.io/badge/maps-06-4d9d3e?style=flat-square" alt="Six playable maps">
+    <img src="https://img.shields.io/badge/birds-04-ec655b?style=flat-square" alt="Four selectable birds">
+    <img src="https://img.shields.io/badge/web-mobile-178dbb?style=flat-square" alt="Web and mobile">
+    <img src="https://img.shields.io/badge/license-MIT-39434a?style=flat-square" alt="MIT license">
   </p>
-  <br>
-  <img src="screenshots/flight-desktop.png" alt="Littlewing flight screen, with a hand-drawn bird above the Sunlit Meadow" width="920">
-  <p><em>Take a breath. Then take flight.</em></p>
+  <img src="screenshots/flight-desktop.png" alt="Flipping Bird home screen with its pixel-art game, bird selector, and flight controls" width="670">
+  <p><em>Choose a bird. Pick a sky. See how far you can fly.</em></p>
 </div>
 
-## Six skies to explore
+## Six maps
 
-Each world has its own palette, scenery, and little details, from meadow flowers to the stars of Moonmilk Hollow. Every map is playable from the start.
+Each map has its own palette and scenery. All six are open from the start.
+
+| Map | Sky |
+| --- | --- |
+| Sunlit Meadow | A soft green beginning |
+| Amber Orchard | Warm autumn colors |
+| Whispering Canyon | Rust-red cliffs |
+| Bluebell Coast | Sea-glass blues |
+| Moonmilk Hollow | A quiet, starry night |
+| Poppyfield Rise | Bright wildflower fields |
 
 <div align="center">
-  <img src="screenshots/worlds-desktop.png" alt="The six selectable Littlewing worlds: Sunlit Meadow, Amber Orchard, Whispering Canyon, Bluebell Coast, Moonmilk Hollow, and Poppyfield Rise" width="920">
+  <img src="screenshots/worlds-desktop.png" alt="All six selectable pixel-art maps in Flipping Bird" width="670">
 </div>
 
-| World | A little piece of the view |
-| --- | --- |
-| **Sunlit Meadow** | Sleepy clouds, green hills, and nodding flowers |
-| **Amber Orchard** | Warm leaves and a soft autumn sky |
-| **Whispering Canyon** | Rust-red cliffs and open air |
-| **Bluebell Coast** | Sea-glass colors and rolling waves |
-| **Moonmilk Hollow** | A velvet night sky and sleepy stars |
-| **Poppyfield Rise** | A bright jumble of wildflowers |
+## Play
 
-## How to play
+Tap or click the game, or press **Space** / **↑** to flap. Use **P** or **Esc** to pause. Fly between the gates to build your score.
 
-Tap or click the game, or press **Space** / **↑** to flap. Slip through each gate to score. **P** or **Esc** pauses the flight.
+Pick from four birds, cycle between Easy, Normal, and Hard, turn sound effects on or off, and check your personal bests and flight log. Progress is saved in your browser.
 
-Choose a different bird or world from the navigation tabs. Your best score, flights, and visited worlds are saved in your browser.
+<div align="center">
+  <img src="screenshots/flight-mobile.png" alt="Responsive Flipping Bird game screen on a phone-sized viewport" width="280">
+</div>
 
-## Run it locally
+## Run locally
 
-There are no dependencies or build tools. Open `index.html` in a modern browser, or serve the folder locally:
+No dependencies or build step are needed. Open `index.html`, or start a local server:
 
 ```sh
 python -m http.server 8000
 ```
 
-Then visit `http://localhost:8000`. The game supports touch, mouse, and keyboard input, and its layout adapts to phone and desktop screens.
+Then open `http://localhost:8000` in a browser. The game supports mouse, touch, and keyboard input.
 
-## Project files
+## Files
 
 ```text
 .
-├── app.js                    # Canvas game, worlds, controls, and local progress
-├── index.html                # Game interface
-├── style.css                 # Responsive paper-and-ink styling
-├── screenshots/
-│   ├── flight-desktop.png    # Flight screen
-│   └── worlds-desktop.png    # World selection
-└── LICENSE
+├── app.js
+├── index.html
+├── style.css
+└── screenshots/
+    ├── flight-desktop.png
+    ├── flight-mobile.png
+    └── worlds-desktop.png
 ```
 
 ## License

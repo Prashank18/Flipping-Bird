@@ -10,13 +10,18 @@
     { id: "bloom", name: "Poppyfield Rise", short: "Poppyfield Rise", icon: "✿", subtitle: "A confetti of bright wildflowers", description: "A joyful jumble of blooms, bees, and big blue sky.", mood: "JUBILANT", sky: ["#d2e6e5", "#f0e6cb"], far: "#a9bf98", near: "#7d9a70", ground: "#77865b", pipe: "#6e8b59", pale: "#eee7d4", motif: "poppy" },
   ];
   const BIRDS = [
-    { id: "poppy", name: "Poppy", note: "The little daydreamer", icon: "✿", color: "#d27c50", bg: "#f2e4d1", body: "#ee995f", wing: "#cf6f4d" },
-    { id: "blue", name: "Bluebell", note: "The happy wanderer", icon: "✦", color: "#5f91ac", bg: "#dce9e8", body: "#73a9bd", wing: "#54879c" },
-    { id: "clover", name: "Clover", note: "The sunny-side-up", icon: "✿", color: "#768d53", bg: "#e5e9d8", body: "#a3b96e", wing: "#758c4f" },
-    { id: "plum", name: "Plum", note: "The little night owl", icon: "✦", color: "#8b719d", bg: "#e9e1ed", body: "#a98cb4", wing: "#826b99" },
+    { id: "poppy", name: "Poppy", note: "The little daydreamer", icon: "✿", color: "#d27c50", bg: "#f2e4d1", body: "#f0c94d", wing: "#df9f35", accent: "#fff0a1" },
+    { id: "blue", name: "Bluebell", note: "The happy wanderer", icon: "✦", color: "#5f91ac", bg: "#dce9e8", body: "#52c5dc", wing: "#2587b8", accent: "#b8f0ed" },
+    { id: "clover", name: "Clover", note: "The sunny-side-up", icon: "✿", color: "#768d53", bg: "#e5e9d8", body: "#91d147", wing: "#589d3e", accent: "#d9f381" },
+    { id: "plum", name: "Plum", note: "The little night owl", icon: "✦", color: "#8b719d", bg: "#e9e1ed", body: "#cc83c1", wing: "#955ba0", accent: "#f3c3e4" },
+  ];
+  const DIFFICULTIES = [
+    { id: "easy", label: "EASY", gravity: .29, lift: -5.8, speed: 2.2, gap: 190, minimumGap: 160 },
+    { id: "normal", label: "NORMAL", gravity: .34, lift: -6.25, speed: 2.7, gap: 170, minimumGap: 142 },
+    { id: "hard", label: "HARD", gravity: .38, lift: -6.55, speed: 3.15, gap: 151, minimumGap: 126 },
   ];
   const STORAGE_KEY = "littlewing-save-v1";
-  const freshSave = () => ({ world: "meadow", bird: "poppy", best: 0, flights: 0, gates: 0, visited: [], sound: true });
+  const freshSave = () => ({ world: "meadow", bird: "poppy", difficulty: "easy", best: 0, flights: 0, gates: 0, visited: [], sound: true });
   let save = loadSave();
   let tab = "flight";
   let mode = "ready";
@@ -44,6 +49,7 @@
         ...defaults, ...raw,
         world: WORLDS.some((item) => item.id === raw.world) ? raw.world : defaults.world,
         bird: BIRDS.some((item) => item.id === raw.bird) ? raw.bird : defaults.bird,
+        difficulty: DIFFICULTIES.some((item) => item.id === raw.difficulty) ? raw.difficulty : defaults.difficulty,
         best: Number.isFinite(raw.best) ? Math.max(0, raw.best) : 0,
         flights: Number.isFinite(raw.flights) ? Math.max(0, raw.flights) : 0,
         gates: Number.isFinite(raw.gates) ? Math.max(0, raw.gates) : 0,
@@ -61,6 +67,69 @@
 
   function currentWorld() { return WORLDS.find((item) => item.id === worldId) || WORLDS[0]; }
   function currentBird() { return BIRDS.find((item) => item.id === save.bird) || BIRDS[0]; }
+  function currentDifficulty() { return DIFFICULTIES.find((item) => item.id === save.difficulty) || DIFFICULTIES[0]; }
+  function pixelBirdSvg(bird) {
+    const pixels = [
+      ".....HH......",
+      "....BBBB.....",
+      "...BBBBBB....",
+      "..BBBBBBBB...",
+      ".BBBBBBBBBB..",
+      "BBBBBBBBBBE..",
+      "BBBBWBBBEEPOO",
+      ".BBBWWBBBEEPO",
+      "..BBWWBBBB...",
+      "...BBBB......",
+      "...TT..TT.....",
+    ];
+    const colors = {
+      B: bird.body,
+      W: bird.wing,
+      H: bird.accent,
+      E: "#fff9dc",
+      P: "#171b20",
+      O: "#f0783e",
+      T: "#554632",
+    };
+    const cells = [];
+    pixels.forEach((row, y) => {
+      [...row].forEach((pixel, x) => {
+        if (colors[pixel]) cells.push(`<rect x="${x * 4}" y="${y * 4}" width="4" height="4" fill="${colors[pixel]}"/>`);
+      });
+    });
+    return `<svg viewBox="0 0 56 48" role="img" aria-label="${bird.name}, pixel bird" shape-rendering="crispEdges">${cells.join("")}</svg>`;
+  }
+
+  function selectBird(id) {
+    if (!BIRDS.some((bird) => bird.id === id)) return;
+    save.bird = id;
+    persist();
+    updateBirdPicker();
+    if (tab === "birds") renderBirdGrid();
+    drawScene();
+  }
+
+  function updateBirdPicker() {
+    const bird = currentBird();
+    document.querySelector("#home-bird-preview").innerHTML = pixelBirdSvg(bird);
+    document.querySelector("#home-bird-name").textContent = bird.name;
+    document.querySelector("#home-bird-note").textContent = bird.note.toUpperCase();
+    document.querySelector("#bird-dots").innerHTML = BIRDS.map((item) =>
+      `<button class="bird-dot${item.id === bird.id ? " active" : ""}" type="button" data-bird-id="${item.id}" aria-label="Choose ${item.name}" aria-pressed="${item.id === bird.id}"></button>`
+    ).join("");
+    const preview = document.querySelector("#bird-preview");
+    preview.innerHTML = pixelBirdSvg(bird);
+    preview.style.background = bird.bg;
+  }
+
+  function setDifficulty(id) {
+    if (!DIFFICULTIES.some((item) => item.id === id)) return;
+    save.difficulty = id;
+    persist();
+    document.querySelector("#difficulty-label").textContent = currentDifficulty().label;
+    resetFlight();
+  }
+
   function resizeCanvas() {
     const rect = canvas.getBoundingClientRect();
     if (!rect.width || !rect.height) return;
@@ -71,6 +140,7 @@
       canvas.width = width;
       canvas.height = height;
     }
+    ctx.imageSmoothingEnabled = false;
     ctx.setTransform(width / 390, 0, 0, height / 600, 0, 0);
     drawScene();
   }
@@ -254,255 +324,219 @@
   }
 
   function drawBackdrop(world, time = sceneTime, width = 390, height = 600) {
-    const gradient = ctx.createLinearGradient(0, 0, 0, height);
-    gradient.addColorStop(0, world.sky[0]);
-    gradient.addColorStop(1, world.sky[1]);
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, width, height);
+    const band = Math.ceil(height / 12);
+    for (let row = 0; row < 12; row++) {
+      ctx.fillStyle = row < 6 ? world.sky[0] : world.sky[1];
+      ctx.fillRect(0, row * band, width, band);
+    }
 
     if (world.id === "moon") {
       ctx.fillStyle = "#f4e6bf";
-      ctx.beginPath(); ctx.arc(width * .77, height * .17, 28, 0, Math.PI * 2); ctx.fill();
+      ctx.fillRect(294, 66, 32, 32);
       ctx.fillStyle = world.sky[0];
-      ctx.beginPath(); ctx.arc(width * .8, height * .14, 25, 0, Math.PI * 2); ctx.fill();
-      for (let i = 0; i < 32; i++) {
-        const x = seeded(i, 41) * width;
-        const y = seeded(i, 17) * height * .57;
-        const pulse = .5 + .4 * Math.sin(time * .001 + i);
-        drawMotif(x, y, 3 + seeded(i, 4) * 5, "star", "#f6edce", pulse);
+      ctx.fillRect(306, 58, 28, 28);
+      for (let i = 0; i < 34; i++) {
+        const x = Math.floor(seeded(i, 41) * width / 6) * 6;
+        const y = Math.floor(seeded(i, 17) * height * .52 / 6) * 6;
+        const size = i % 4 === 0 ? 6 : 3;
+        ctx.fillStyle = Math.sin(time * .002 + i) > .2 ? "#fff2c0" : "#c8d5e1";
+        ctx.fillRect(x, y, size, size);
       }
     } else {
-      ctx.fillStyle = "#f4dc9d";
-      ctx.globalAlpha = .76;
-      ctx.beginPath(); ctx.arc(width * .77, height * .16, 27, 0, Math.PI * 2); ctx.fill();
-      ctx.globalAlpha = 1;
-      for (let i = 0; i < 5; i++) {
-        const span = width + 150;
-        let x = ((seeded(i, 9) * span + time * .008 * (i % 2 ? .6 : .36)) % span) - 75;
-        drawCloud(x, height * (.19 + seeded(i, 6) * .25), 22 + seeded(i, 2) * 25, .38);
-      }
-      if (world.id === "coast") {
-        for (let i = 0; i < 4; i++) drawMotif(seeded(i, 13) * width, 100 + seeded(i, 8) * 185, 12 + seeded(i, 7) * 12, "wave", "#fffef3", .27);
+      ctx.fillStyle = "#ffe66c";
+      ctx.fillRect(304, 72, 30, 30);
+      ctx.fillRect(298, 78, 42, 18);
+      for (let i = 0; i < 4; i++) {
+        const span = width + 120;
+        const x = Math.floor((((seeded(i, 9) * span + time * .012 * (i % 2 ? .7 : .4)) % span) - 60) / 6) * 6;
+        const y = Math.floor((108 + seeded(i, 6) * 116) / 6) * 6;
+        ctx.fillStyle = "#ffffffa8";
+        ctx.fillRect(x + 12, y - 6, 36, 12);
+        ctx.fillRect(x + 6, y, 48, 12);
+        ctx.fillRect(x, y + 6, 60, 6);
       }
     }
 
-    drawHills(world.far, height * .63, height * .075, time * .008, .009);
-    drawHills(world.near, height * .74, height * .048, time * .014, .013);
-
-    for (let i = 0; i < 18; i++) {
-      const x = seeded(i, 37) * width;
-      const y = height * .67 + seeded(i, 52) * height * .25;
-      const size = 7 + seeded(i, 61) * 11;
-      const motif = world.id === "moon" ? "star" : world.motif;
-      drawMotif(x, y, size, motif, world.id === "moon" ? "#dad1bb" : world.ground, .23);
+    const horizon = Math.floor(height * .66);
+    for (let x = 0, index = 0; x < width; x += 30, index++) {
+      const buildingHeight = 30 + Math.floor(seeded(index, 26) * 9) * 6;
+      const y = horizon - buildingHeight;
+      ctx.fillStyle = world.far;
+      ctx.fillRect(x, y, 24, buildingHeight);
+      ctx.fillStyle = world.near;
+      ctx.fillRect(x + 18, y + 10, 6, buildingHeight - 10);
+      ctx.fillStyle = world.pale;
+      for (let wy = y + 9; wy < horizon - 7; wy += 18) {
+        ctx.fillRect(x + 6, wy, 5, 6);
+        ctx.fillRect(x + 16, wy, 5, 6);
+      }
     }
 
-    drawFieldDetails(world, time, width, height);
+    for (let x = 0; x < width; x += 10) {
+      const ridge = horizon - 14 - Math.floor((Math.sin((x + time * .025) / 29) + 1) * 2) * 6;
+      ctx.fillStyle = world.near;
+      ctx.fillRect(x, ridge, 10, height - ridge);
+    }
+    if (world.id === "canyon") {
+      for (let x = 8; x < width; x += 73) {
+        const y = horizon - 64 - Math.floor(seeded(x, 33) * 5) * 8;
+        ctx.fillStyle = world.far;
+        ctx.fillRect(x, y, 42, 64);
+        ctx.fillRect(x + 8, y - 18, 26, 18);
+        ctx.fillStyle = world.sky[1];
+        ctx.fillRect(x + 20, y + 18, 6, 26);
+      }
+    } else if (world.id === "coast") {
+      for (let row = 0; row < 5; row++) {
+        ctx.fillStyle = row % 2 ? "#e7f4dc" : "#a6dcd3";
+        ctx.fillRect(0, horizon + row * 13, width, 7);
+      }
+    }
 
     const groundY = height - 20;
     ctx.fillStyle = world.ground;
     ctx.fillRect(0, groundY, width, 20);
-    ctx.fillStyle = "#fff7e9";
-    ctx.globalAlpha = .25;
-    for (let x = 0; x < width; x += 11) {
-      ctx.beginPath();
-      ctx.moveTo(x, groundY);
-      ctx.lineTo(x + 2 + seeded(x, 6) * 5, groundY - 3 - seeded(x, 8) * 4);
-      ctx.lineTo(x + 7, groundY);
-      ctx.fill();
+    ctx.fillStyle = world.pale;
+    ctx.fillRect(0, groundY, width, 5);
+    ctx.fillStyle = world.near;
+    for (let x = 0; x < width; x += 18) {
+      const tuft = 4 + Math.floor(seeded(x, 6) * 3) * 2;
+      ctx.fillRect(x, groundY - tuft, 4, tuft);
+      ctx.fillRect(x + 5, groundY - tuft - 3, 3, tuft + 3);
     }
-    ctx.globalAlpha = 1;
-    drawPaperGrain(width, height);
+    ctx.fillStyle = "#d3a56f";
+    ctx.fillRect(0, height - 8, width, 8);
+    ctx.fillStyle = "#f5d099";
+    for (let x = 0; x < width; x += 16) ctx.fillRect(x, height - 5, 8, 3);
+
+    for (let i = 0; i < 13; i++) {
+      const x = Math.floor(seeded(i, 72) * width / 6) * 6;
+      const y = groundY - 12 - Math.floor(seeded(i, 73) * 3) * 6;
+      if (world.id === "moon") {
+        ctx.fillStyle = "#fff0bb";
+        ctx.fillRect(x, y, 4, 4);
+      } else if (world.id === "coast") {
+        ctx.fillStyle = "#fff5d9";
+        ctx.fillRect(x, y, 12, 3);
+        ctx.fillRect(x + 6, y - 3, 3, 3);
+      } else {
+        ctx.fillStyle = i % 2 ? "#f07372" : "#ffe36d";
+        ctx.fillRect(x, y, 4, 4);
+        ctx.fillRect(x - 3, y + 4, 4, 4);
+        ctx.fillRect(x + 3, y + 4, 4, 4);
+      }
+    }
   }
 
   function drawGateColumn(x, y, width, height, world) {
     if (height <= 0) return;
-    const segments = 8;
-    ctx.beginPath();
-    ctx.moveTo(x + 3, y);
-    for (let i = 0; i <= segments; i++) {
-      const py = y + (height * i) / segments;
-      const wobble = (seeded(i, Math.floor(x)) - .5) * 3;
-      ctx.lineTo(x + wobble, py);
-    }
-    ctx.lineTo(x + width + 2, y + height);
-    for (let i = segments; i >= 0; i--) {
-      const py = y + (height * i) / segments;
-      const wobble = (seeded(i, Math.floor(x) + 17) - .5) * 3;
-      ctx.lineTo(x + width + wobble, py);
-    }
-    ctx.closePath();
+    const left = Math.floor(x / 6) * 6;
+    const top = Math.max(-4, Math.floor(y / 6) * 6);
+    const right = Math.ceil((x + width) / 6) * 6;
+    const bottom = Math.min(580, Math.ceil((y + height) / 6) * 6);
+    ctx.fillStyle = "#17242b";
+    ctx.fillRect(left - 4, top, right - left + 8, bottom - top);
     ctx.fillStyle = world.pipe;
-    ctx.fill();
-    ctx.strokeStyle = "#344d3b9a";
-    ctx.lineWidth = 1.8;
-    ctx.stroke();
-
-    ctx.save();
-    ctx.globalAlpha = .28;
-    ctx.strokeStyle = "#fff4da";
-    ctx.lineWidth = 1;
-    for (let i = 0; i < 5; i++) {
-      const markY = y + 10 + seeded(i, Math.floor(x) + 27) * Math.max(10, height - 20);
-      const markX = x + 8 + seeded(i, 35) * (width - 15);
-      ctx.beginPath();
-      ctx.moveTo(markX, markY);
-      ctx.lineTo(markX + 4 + seeded(i, 36) * 8, markY - 2 + seeded(i, 37) * 5);
-      ctx.stroke();
-    }
-    ctx.restore();
+    ctx.fillRect(left, top, right - left, bottom - top);
+    ctx.fillStyle = world.pale;
+    ctx.fillRect(left + 6, top, 6, bottom - top);
+    ctx.fillStyle = world.near;
+    for (let stripe = top + 12; stripe < bottom; stripe += 30) ctx.fillRect(left + 18, stripe, 12, 6);
   }
 
   function drawGateCap(x, y, width, height, world) {
-    ctx.beginPath();
-    ctx.moveTo(x + 4, y + 3);
-    ctx.quadraticCurveTo(x + width * .45, y - 1, x + width - 3, y + 3);
-    ctx.quadraticCurveTo(x + width + 1, y + height * .48, x + width - 2, y + height - 3);
-    ctx.quadraticCurveTo(x + width * .51, y + height + 2, x + 3, y + height - 2);
-    ctx.quadraticCurveTo(x - 2, y + height * .48, x + 4, y + 3);
-    ctx.closePath();
+    const left = Math.floor(x / 6) * 6;
+    const top = Math.floor(y / 6) * 6;
+    const capWidth = Math.ceil(width / 6) * 6;
+    const capHeight = Math.ceil(height / 6) * 6;
+    ctx.fillStyle = "#17242b";
+    ctx.fillRect(left, top, capWidth, capHeight);
     ctx.fillStyle = world.pipe;
-    ctx.fill();
-    ctx.strokeStyle = "#344d3b9a";
-    ctx.lineWidth = 1.8;
-    ctx.stroke();
-    ctx.save();
-    ctx.globalAlpha = .34;
-    ctx.strokeStyle = "#fff3d3";
-    ctx.lineWidth = 1.2;
-    ctx.beginPath();
-    ctx.moveTo(x + 7, y + height * .35);
-    ctx.quadraticCurveTo(x + width * .48, y + height * .2, x + width - 8, y + height * .38);
-    ctx.stroke();
-    ctx.restore();
+    ctx.fillRect(left + 4, top + 4, capWidth - 8, capHeight - 8);
+    ctx.fillStyle = world.pale;
+    ctx.fillRect(left + 8, top + 4, 8, capHeight - 8);
+    ctx.fillStyle = world.near;
+    ctx.fillRect(left + capWidth - 15, top + 4, 7, capHeight - 8);
   }
 
   function drawObstacle(obstacle, world) {
-    const cap = 18;
     const bottom = 580;
     const topHeight = Math.max(0, obstacle.gapY - obstacle.gap / 2);
     const bottomY = obstacle.gapY + obstacle.gap / 2;
-    ctx.save();
     drawGateColumn(obstacle.x, -8, 48, topHeight + 8, world);
     drawGateCap(obstacle.x - 6, topHeight - 12, 60, 20, world);
     drawGateColumn(obstacle.x, bottomY, 48, bottom - bottomY, world);
     drawGateCap(obstacle.x - 6, bottomY - 8, 60, 20, world);
-    ctx.strokeStyle = "#fff6db8a";
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(obstacle.x + 11, 7);
-    ctx.quadraticCurveTo(obstacle.x + 8, topHeight * .45, obstacle.x + 12, Math.max(5, topHeight - cap));
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(obstacle.x + 11, bottomY + 25);
-    ctx.quadraticCurveTo(obstacle.x + 14, bottomY + (bottom - bottomY) * .48, obstacle.x + 10, bottom - 5);
-    ctx.stroke();
-    ctx.restore();
   }
 
   function drawBird(x, y, time, tilt = 0) {
     const bird = currentBird();
-    const wingLift = Math.sin(time * .018) * 4;
+    const wingLift = Math.floor(time / 145) % 2 ? 1 : 0;
+    const pixels = [
+      ".....HH......",
+      "....BBBB.....",
+      "...BBBBBB....",
+      "..BBBBBBBB...",
+      ".BBBBBBBBBB..",
+      "BBBBBBBBBBE..",
+      "BBBBWBBBEEPOO",
+      ".BBBWWBBBEEPO",
+      "..BBWWBBBB...",
+      "...BBBB......",
+      "...TT..TT.....",
+    ];
+    const colors = {
+      B: bird.body,
+      W: bird.wing,
+      H: bird.accent,
+      E: "#fff9dc",
+      P: "#171b20",
+      O: "#f0783e",
+      T: "#554632",
+    };
+    const cell = 3;
     ctx.save();
     ctx.translate(x, y);
     ctx.rotate(tilt);
-    ctx.strokeStyle = "#664a3c";
-    ctx.lineWidth = 1.7;
-    ctx.lineJoin = "round";
-    ctx.lineCap = "round";
-
-    ctx.fillStyle = bird.wing;
-    ctx.beginPath();
-    ctx.moveTo(-17, 1);
-    ctx.quadraticCurveTo(-26, -5, -23, -11);
-    ctx.quadraticCurveTo(-17, -10, -15, -5);
-    ctx.fill();
-    ctx.stroke();
-
-    ctx.fillStyle = bird.body;
-    ctx.beginPath();
-    ctx.moveTo(-19, 2);
-    ctx.bezierCurveTo(-19, -8, -12, -15, -3, -15);
-    ctx.bezierCurveTo(7, -17, 16, -10, 18, -3);
-    ctx.bezierCurveTo(21, 5, 13, 13, 4, 14);
-    ctx.bezierCurveTo(-6, 16, -16, 11, -19, 2);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-
-    ctx.fillStyle = bird.wing;
-    ctx.beginPath();
-    ctx.moveTo(-11, 0 + wingLift);
-    ctx.quadraticCurveTo(-12, -8 + wingLift, -6, -9 + wingLift);
-    ctx.quadraticCurveTo(-2, -11 + wingLift, 1, -7 + wingLift);
-    ctx.quadraticCurveTo(7, -8 + wingLift, 8, -2 + wingLift);
-    ctx.quadraticCurveTo(1, 4 + wingLift, -11, 0 + wingLift);
-    ctx.fill();
-    ctx.stroke();
-    ctx.save();
-    ctx.globalAlpha = .56;
-    ctx.lineWidth = .9;
-    ctx.beginPath();
-    ctx.moveTo(-7, -1 + wingLift);
-    ctx.quadraticCurveTo(-2, -5 + wingLift, 3, -3 + wingLift);
-    ctx.moveTo(-4, 1 + wingLift);
-    ctx.quadraticCurveTo(1, -2 + wingLift, 5, 0 + wingLift);
-    ctx.stroke();
-    ctx.restore();
-
-    ctx.fillStyle = "#fff6df";
-    ctx.beginPath(); ctx.arc(8, -5, 5, 0, Math.PI * 2); ctx.fill();
-    ctx.stroke();
-    ctx.fillStyle = "#30403b";
-    ctx.beginPath(); ctx.arc(10, -5, 2, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = "#d78256";
-    ctx.beginPath();
-    ctx.moveTo(16, 0);
-    ctx.quadraticCurveTo(21, 2, 26, 4);
-    ctx.quadraticCurveTo(21, 7, 16, 8);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-    ctx.strokeStyle = "#664a3c";
-    ctx.lineWidth = 1.2;
-    ctx.beginPath();
-    ctx.moveTo(-5, 13);
-    ctx.lineTo(-4, 17);
-    ctx.lineTo(-8, 18);
-    ctx.moveTo(5, 13);
-    ctx.lineTo(6, 17);
-    ctx.lineTo(2, 18);
-    ctx.stroke();
+    pixels.forEach((row, rowIndex) => {
+      [...row].forEach((pixel, columnIndex) => {
+        if (!colors[pixel]) return;
+        const offsetY = pixel === "W" ? wingLift * cell : 0;
+        ctx.fillStyle = colors[pixel];
+        ctx.fillRect((columnIndex - 6) * cell, (rowIndex - 5) * cell + offsetY, cell, cell);
+      });
+    });
     ctx.restore();
   }
 
   function drawScoreOnCanvas() {
     ctx.save();
     ctx.textAlign = "center";
-    ctx.font = "700 40px Fraunces, Georgia, serif";
+    ctx.font = "18px 'Press Start 2P', monospace";
     ctx.lineWidth = 5;
-    ctx.strokeStyle = "#39493845";
-    ctx.strokeText(String(score), 195, 72);
-    ctx.fillStyle = "#fffdf0";
-    ctx.fillText(String(score), 195, 72);
+    ctx.strokeStyle = "#173b47";
+    ctx.strokeText(String(score).padStart(2, "0"), 195, 66);
+    ctx.fillStyle = "#fff3c3";
+    ctx.fillText(String(score).padStart(2, "0"), 195, 66);
     ctx.restore();
   }
 
   function drawReadySign() {
     ctx.save();
     ctx.textAlign = "center";
-    ctx.fillStyle = "#384e3c";
-    ctx.font = "700 18px Fraunces, Georgia, serif";
-    ctx.fillText("a little adventure awaits", 195, 155);
-    ctx.fillStyle = "#667766";
-    ctx.font = "16px Kalam, cursive";
-    ctx.fillText("flap when you're ready", 195, 176);
+    ctx.fillStyle = "#173b47";
+    ctx.font = "10px 'Press Start 2P', monospace";
+    ctx.fillText("READY?", 195, 148);
+    ctx.fillStyle = "#21424a";
+    ctx.font = "16px 'Silkscreen', monospace";
+    ctx.fillText("tap to flap!", 195, 172);
     ctx.restore();
   }
 
   function drawScene() {
     if (!ctx || !canvas.width || !canvas.height) return;
     ctx.save();
+    ctx.imageSmoothingEnabled = false;
     ctx.setTransform(canvas.width / 390, 0, 0, canvas.height / 600, 0, 0);
     const world = currentWorld();
     drawBackdrop(world, sceneTime);
@@ -519,23 +553,23 @@
       drawBird(105, birdY, sceneTime, tilt);
     }
     if (mode === "over") {
-      ctx.fillStyle = "#f5f2e9";
-      ctx.globalAlpha = .86;
-      ctx.fillRect(53, 204, 284, 144);
-      ctx.globalAlpha = 1;
-      ctx.strokeStyle = "#667f65";
-      ctx.lineWidth = 1;
-      ctx.strokeRect(53.5, 204.5, 283, 143);
+      ctx.fillStyle = "#fff1c9";
+      ctx.fillRect(45, 207, 300, 144);
+      ctx.fillStyle = "#171b20";
+      ctx.fillRect(45, 207, 300, 6);
+      ctx.fillRect(45, 345, 300, 6);
+      ctx.fillRect(45, 207, 6, 144);
+      ctx.fillRect(339, 207, 6, 144);
       ctx.textAlign = "center";
-      ctx.fillStyle = "#355440";
-      ctx.font = "700 24px Fraunces, Georgia, serif";
-      ctx.fillText("What a lovely try.", 195, 246);
-      ctx.fillStyle = "#73766a";
-      ctx.font = "12px DM Sans, sans-serif";
-      ctx.fillText(score ? `You flew past ${score} little gate${score === 1 ? "" : "s"}.` : "Every great flight starts with a flap.", 195, 274);
-      ctx.fillStyle = "#a0804a";
-      ctx.font = "10px DM Mono, monospace";
-      ctx.fillText("TAP TO TRY AGAIN", 195, 320);
+      ctx.fillStyle = "#171b20";
+      ctx.font = "10px 'Press Start 2P', monospace";
+      ctx.fillText("NICE TRY!", 195, 248);
+      ctx.fillStyle = "#334d4e";
+      ctx.font = "15px 'Silkscreen', monospace";
+      ctx.fillText(`${score} GATE${score === 1 ? "" : "S"} CLEARED`, 195, 279);
+      ctx.fillStyle = "#ca5c50";
+      ctx.font = "8px 'Press Start 2P', monospace";
+      ctx.fillText("TAP TO FLY AGAIN", 195, 319);
     }
     ctx.restore();
   }
@@ -546,7 +580,7 @@
     birdVelocity = 0;
     obstacles = [];
     if (nextMode === "playing") {
-      obstacles = [{ x: 315, gapY: 287, gap: 170, scored: false }];
+      obstacles = [{ x: 315, gapY: 287, gap: currentDifficulty().gap, scored: false }];
     }
     mode = nextMode;
     updateFlightUI();
@@ -560,6 +594,7 @@
       document.querySelector("#pause-chip").hidden = true;
       document.querySelector("#run-label").textContent = "IN THE AIR";
       document.querySelector("#run-indicator").classList.add("running");
+      updateFlightUI();
       lastFrame = performance.now();
       return;
     }
@@ -581,7 +616,7 @@
       return;
     }
     if (mode !== "playing") return;
-    birdVelocity = -6.25;
+    birdVelocity = currentDifficulty().lift;
     playTone(460 + Math.random() * 90, .045, "sine", .035);
   }
 
@@ -596,6 +631,7 @@
       startFlight();
       document.querySelector("#run-indicator").classList.remove("paused");
     }
+    updateFlightUI();
     drawScene();
   }
 
@@ -606,7 +642,7 @@
     document.querySelector("#run-indicator").classList.remove("running", "paused");
     document.querySelector("#pause-chip").hidden = true;
     document.querySelector("#canvas-hint").classList.remove("is-hidden");
-    document.querySelector("#start-button span:first-child").textContent = "Fly again";
+    document.querySelector("#start-button span:first-child").textContent = "TRY AGAIN";
     playTone(190, .14, "triangle", .045);
     if (score > save.best) save.best = score;
     persist();
@@ -621,10 +657,14 @@
     document.querySelector("#pause-button").disabled = mode === "ready" || mode === "over";
     document.querySelector("#pause-button").textContent = mode === "paused" ? "▶" : "Ⅱ";
     document.querySelector("#pause-button").setAttribute("aria-label", mode === "paused" ? "Resume game" : "Pause game");
+    const startButton = document.querySelector("#start-button");
+    startButton.disabled = mode === "playing";
     if (mode === "ready") {
       document.querySelector("#canvas-hint").classList.remove("is-hidden");
-      document.querySelector("#start-button span:first-child").textContent = "Take flight";
-    }
+      startButton.querySelector("span:first-child").textContent = "START GAME";
+    } else if (mode === "playing") startButton.querySelector("span:first-child").textContent = "IN FLIGHT";
+    else if (mode === "paused") startButton.querySelector("span:first-child").textContent = "CONTINUE";
+    else if (mode === "over") startButton.querySelector("span:first-child").textContent = "TRY AGAIN";
   }
 
   function tick(time) {
@@ -635,8 +675,9 @@
     if (document.hidden || tab !== "flight") return;
     sceneTime += Math.min(delta, 2) * 16.667;
     if (mode === "playing") {
-      const speed = (2.7 + Math.min(score * .045, 1.45)) * delta;
-      birdVelocity += .34 * delta;
+      const difficulty = currentDifficulty();
+      const speed = (difficulty.speed + Math.min(score * .045, 1.45)) * delta;
+      birdVelocity += difficulty.gravity * delta;
       birdY += birdVelocity * delta;
       obstacles.forEach((obstacle) => {
         obstacle.x -= speed;
@@ -653,7 +694,7 @@
       if (obstacles.length && obstacles[0].x < -70) obstacles.shift();
       const lastObstacle = obstacles[obstacles.length - 1];
       if (!lastObstacle || lastObstacle.x < 155) {
-        const gap = Math.max(142, 170 - Math.floor(score / 6) * 3);
+        const gap = Math.max(difficulty.minimumGap, difficulty.gap - Math.floor(score / 6) * 3);
         const margin = gap / 2 + 36;
         obstacles.push({ x: 425, gapY: margin + Math.random() * (560 - margin * 2), gap, scored: false });
       }
@@ -661,8 +702,8 @@
         endFlight();
       } else {
         for (const obstacle of obstacles) {
-          const inX = 105 + 15 > obstacle.x && 105 - 15 < obstacle.x + 48;
-          const outsideGap = birdY - 11 < obstacle.gapY - obstacle.gap / 2 || birdY + 11 > obstacle.gapY + obstacle.gap / 2;
+          const inX = 105 + 18 > obstacle.x && 105 - 18 < obstacle.x + 48;
+          const outsideGap = birdY - 12 < obstacle.gapY - obstacle.gap / 2 || birdY + 12 > obstacle.gapY + obstacle.gap / 2;
           if (inX && outsideGap) { endFlight(); break; }
         }
       }
@@ -707,10 +748,11 @@
     const world = currentWorld();
     document.querySelector("#current-world-name").textContent = world.name;
     document.querySelector("#world-chip-art").textContent = world.icon;
-    const next = WORLDS[(WORLDS.findIndex((item) => item.id === worldId) + 1) % WORLDS.length];
-    document.querySelector("#next-world-name").textContent = next.name;
-    document.querySelector("#next-world-caption").textContent = next.subtitle;
-    document.querySelector("#next-world-art").textContent = next.icon;
+    const index = WORLDS.findIndex((item) => item.id === worldId);
+    document.querySelector("#next-world-name").textContent = world.name;
+    document.querySelector("#next-world-caption").textContent = `${world.mood} SKY · TAP TO CYCLE`;
+    document.querySelector("#next-world-art").textContent = world.icon;
+    document.querySelector(".world-spotlight .world-card-index").textContent = `${String(index + 1).padStart(2, "0")} / 06`;
   }
 
   function switchTab(nextTab) {
@@ -741,172 +783,60 @@
     const height = Math.max(160, Math.round(rect.height * Math.min(devicePixelRatio || 1, 2)));
     canvasElement.width = width;
     canvasElement.height = height;
+    context.imageSmoothingEnabled = false;
     context.setTransform(width / 390, 0, 0, height / 180, 0, 0);
-    const drawMiniFlower = (x, y, size, color) => {
-      context.save();
-      context.translate(x, y);
-      context.fillStyle = color;
-      context.strokeStyle = "#67533c88";
-      context.lineWidth = .7;
-      for (let petal = 0; petal < 5; petal++) {
-        context.save();
-        context.rotate((Math.PI * 2 * petal) / 5);
-        context.beginPath();
-        context.ellipse(0, -size * .5, size * .25, size * .48, 0, 0, Math.PI * 2);
-        context.fill();
-        context.stroke();
-        context.restore();
-      }
-      context.fillStyle = "#d5a34f";
-      context.beginPath();
-      context.arc(0, 0, size * .2, 0, Math.PI * 2);
-      context.fill();
-      context.restore();
-    };
-    const drawMiniStar = (x, y, size) => {
-      context.save();
-      context.translate(x, y);
-      context.fillStyle = "#f6edce";
-      context.beginPath();
-      for (let point = 0; point < 8; point++) {
-        const angle = (Math.PI * point) / 4 - Math.PI / 2;
-        const radius = point % 2 ? size * .2 : size * .5;
-        const px = Math.cos(angle) * radius;
-        const py = Math.sin(angle) * radius;
-        if (point === 0) context.moveTo(px, py);
-        else context.lineTo(px, py);
-      }
-      context.closePath();
-      context.fill();
-      context.restore();
-    };
-
-    const sky = context.createLinearGradient(0, 0, 0, 180);
-    sky.addColorStop(0, world.sky[0]);
-    sky.addColorStop(1, world.sky[1]);
-    context.fillStyle = sky;
-    context.fillRect(0, 0, 390, 180);
+    for (let row = 0; row < 9; row++) {
+      context.fillStyle = row < 5 ? world.sky[0] : world.sky[1];
+      context.fillRect(0, row * 20, 390, 20);
+    }
+    context.fillStyle = world.id === "moon" ? "#f1e4bd" : "#ffe66c";
+    context.fillRect(304, 20, 24, 24);
     if (world.id === "moon") {
-      context.fillStyle = "#f3e4bf";
-      context.beginPath();
-      context.arc(305, 34, 19, 0, Math.PI * 2);
-      context.fill();
       context.fillStyle = world.sky[0];
-      context.beginPath();
-      context.arc(313, 28, 17, 0, Math.PI * 2);
-      context.fill();
-      for (let i = 0; i < 11; i++) drawMiniStar(18 + seeded(i, 91) * 350, 12 + seeded(i, 92) * 76, 3 + seeded(i, 93) * 3);
-    } else {
-      context.fillStyle = "#f4dc9d";
-      context.beginPath();
-      context.arc(308, 35, 18, 0, Math.PI * 2);
-      context.fill();
-      for (let i = 0; i < 3; i++) {
-        const x = 35 + seeded(i, 88) * 330;
-        const y = 31 + seeded(i, 89) * 44;
-        context.fillStyle = "#fffdf3a8";
-        context.beginPath();
-        context.ellipse(x, y, 25, 7, 0, 0, Math.PI * 2);
-        context.ellipse(x - 9, y - 4, 12, 8, -.2, 0, Math.PI * 2);
-        context.ellipse(x + 7, y - 5, 14, 9, .2, 0, Math.PI * 2);
-        context.fill();
-      }
+      context.fillRect(313, 15, 22, 22);
     }
-
-    const paintHill = (base, amplitude, color, phase) => {
-      context.beginPath();
-      context.moveTo(0, 180);
-      for (let x = 0; x <= 400; x += 8) {
-        const y = base + Math.sin((x + phase) * .018) * amplitude + Math.sin((x + phase) * .043) * amplitude * .2;
-        context.lineTo(x, y);
-      }
-      context.lineTo(400, 180);
-      context.closePath();
-      context.fillStyle = color;
-      context.fill();
-      context.strokeStyle = `${color}b8`;
-      context.lineWidth = 1.3;
-      context.stroke();
-    };
-    paintHill(103, 15, world.far, 8);
-    paintHill(127, 12, world.near, 48);
-    paintHill(148, 9, world.ground, 105);
-
-    for (let i = 0; i < 15; i++) {
-      const x = 8 + seeded(i, 94) * 374;
-      const y = 148 + seeded(i, 95) * 23;
-      if (world.id === "meadow" || world.id === "orchard" || world.id === "bloom") {
-        drawMiniFlower(x, y, 4 + seeded(i, 96) * 2, world.id === "bloom" && i % 2 ? "#e16e5b" : "#efd184");
-      } else if (world.id === "moon") {
-        drawMiniStar(x, y, 4 + seeded(i, 96) * 3);
-      } else if (world.id === "coast") {
-        context.strokeStyle = "#fff1d2";
-        context.lineWidth = 1;
-        context.beginPath();
-        context.moveTo(x - 4, y);
-        context.quadraticCurveTo(x, y - 3, x + 4, y);
-        context.stroke();
-      } else {
-        context.strokeStyle = "#fff1d2";
-        context.lineWidth = 1.2;
-        context.beginPath();
-        context.moveTo(x, y + 4);
-        context.lineTo(x, y - 4);
-        context.moveTo(x, y);
-        context.lineTo(x - 3, y - 2);
-        context.moveTo(x, y - 1);
-        context.lineTo(x + 3, y - 3);
-        context.stroke();
-      }
+    for (let x = 0, index = 0; x < 390; x += 28, index++) {
+      const buildingHeight = 18 + Math.floor(seeded(index, 91) * 5) * 7;
+      const y = 116 - buildingHeight;
+      context.fillStyle = world.far;
+      context.fillRect(x, y, 23, buildingHeight);
+      context.fillStyle = world.pale;
+      for (let wy = y + 5; wy < 110; wy += 12) context.fillRect(x + 5, wy, 4, 4);
     }
+    context.fillStyle = world.near;
+    context.fillRect(0, 112, 390, 32);
+    for (let x = 0; x < 390; x += 12) {
+      const hillY = 94 + Math.floor((Math.sin(x / 30) + 1) * 5) * 3;
+      context.fillRect(x, hillY, 12, 144 - hillY);
+    }
+    context.fillStyle = world.ground;
+    context.fillRect(0, 148, 390, 32);
+    context.fillStyle = world.pale;
+    context.fillRect(0, 148, 390, 4);
 
     const bird = currentBird();
-    context.save();
-    context.translate(112, 93);
-    context.rotate(-.08);
-    context.fillStyle = bird.body;
-    context.strokeStyle = "#664a3c";
-    context.lineWidth = 1.6;
-    context.beginPath();
-    context.moveTo(-17, 2);
-    context.bezierCurveTo(-17, -8, -10, -13, -2, -13);
-    context.bezierCurveTo(8, -14, 16, -8, 17, 0);
-    context.bezierCurveTo(14, 8, 7, 12, -2, 12);
-    context.bezierCurveTo(-11, 12, -17, 8, -17, 2);
-    context.closePath();
-    context.fill();
-    context.stroke();
-    context.fillStyle = bird.wing;
-    context.beginPath();
-    context.ellipse(-3, -1, 8, 4.5, -.25, 0, Math.PI * 2);
-    context.fill();
-    context.stroke();
-    context.fillStyle = "#fff7e3";
-    context.beginPath();
-    context.arc(8, -5, 4, 0, Math.PI * 2);
-    context.fill();
-    context.stroke();
-    context.fillStyle = "#30403b";
-    context.beginPath();
-    context.arc(9, -5, 1.6, 0, Math.PI * 2);
-    context.fill();
-    context.fillStyle = "#d78256";
-    context.beginPath();
-    context.moveTo(16, 1);
-    context.lineTo(25, 4);
-    context.lineTo(16, 7);
-    context.closePath();
-    context.fill();
-    context.restore();
-
-    context.save();
-    context.globalAlpha = .63;
+    const birdPixels = [
+      ".....HH......", "....BBBB.....", "...BBBBBB....", "..BBBBBBBB...",
+      ".BBBBBBBBBB..", "BBBBBBBBBBE..", "BBBBWBBBEEPOO",
+      ".BBBWWBBBEEPO", "..BBWWBBBB...", "...BBBB......", "...TT..TT.....",
+    ];
+    const birdColors = { B: bird.body, W: bird.wing, H: bird.accent, E: "#fff9dc", P: "#171b20", O: "#f0783e", T: "#554632" };
+    birdPixels.forEach((row, y) => [...row].forEach((pixel, x) => {
+      if (birdColors[pixel]) {
+        context.fillStyle = birdColors[pixel];
+        context.fillRect(85 + x * 2, 71 + y * 2, 2, 2);
+      }
+    }));
+    context.fillStyle = "#17242b";
+    context.fillRect(266, 0, 6, 46);
+    context.fillRect(260, 39, 18, 8);
+    context.fillRect(266, 128, 6, 52);
+    context.fillRect(260, 124, 18, 8);
     context.fillStyle = world.pipe;
-    context.beginPath(); context.roundRect(257, -4, 36, 55, [0, 0, 3, 3]); context.fill();
-    context.beginPath(); context.roundRect(251, 44, 48, 14, 3); context.fill();
-    context.beginPath(); context.roundRect(257, 120, 36, 64, [3, 3, 0, 0]); context.fill();
-    context.beginPath(); context.roundRect(251, 115, 48, 14, 3); context.fill();
-    context.restore();
+    context.fillRect(270, 0, 30, 42);
+    context.fillRect(264, 42, 42, 8);
+    context.fillRect(270, 132, 30, 48);
+    context.fillRect(264, 128, 42, 8);
   }
 
   function renderWorldGrid() {
@@ -941,24 +871,14 @@
       button.style.setProperty("--bird-color", bird.color);
       button.style.setProperty("--bird-bg", bird.bg);
       button.innerHTML = `<span class="bird-doodle"></span><strong></strong><small></small><span class="bird-equipped">${selected ? "FLYING WITH YOU" : "CHOOSE THIS BIRD"}</span>`;
-      button.querySelector(".bird-doodle").textContent = bird.icon;
+      button.querySelector(".bird-doodle").innerHTML = pixelBirdSvg(bird);
       button.querySelector("strong").textContent = bird.name;
       button.querySelector("small").textContent = bird.note;
-      button.addEventListener("click", () => {
-        save.bird = bird.id;
-        persist();
-        renderBirdGrid();
-        document.querySelector("#bird-preview").textContent = bird.icon;
-        document.querySelector("#bird-preview").style.color = bird.color;
-        document.querySelector("#bird-preview").style.background = bird.bg;
-        drawScene();
-      });
+      button.setAttribute("aria-label", `Choose ${bird.name}. ${bird.note}.`);
+      button.addEventListener("click", () => selectBird(bird.id));
       grid.appendChild(button);
     });
-    const bird = currentBird();
-    document.querySelector("#bird-preview").textContent = bird.icon;
-    document.querySelector("#bird-preview").style.color = bird.color;
-    document.querySelector("#bird-preview").style.background = bird.bg;
+    updateBirdPicker();
   }
 
   function updateJournal() {
@@ -997,6 +917,22 @@
     const next = WORLDS[(WORLDS.findIndex((item) => item.id === worldId) + 1) % WORLDS.length];
     setWorld(next.id);
   });
+  document.querySelector("#bird-prev").addEventListener("click", () => {
+    const index = BIRDS.findIndex((bird) => bird.id === save.bird);
+    selectBird(BIRDS[(index - 1 + BIRDS.length) % BIRDS.length].id);
+  });
+  document.querySelector("#bird-next").addEventListener("click", () => {
+    const index = BIRDS.findIndex((bird) => bird.id === save.bird);
+    selectBird(BIRDS[(index + 1) % BIRDS.length].id);
+  });
+  document.querySelector("#bird-dots").addEventListener("click", (event) => {
+    const button = event.target.closest("[data-bird-id]");
+    if (button) selectBird(button.dataset.birdId);
+  });
+  document.querySelector("#difficulty-button").addEventListener("click", () => {
+    const index = DIFFICULTIES.findIndex((item) => item.id === save.difficulty);
+    setDifficulty(DIFFICULTIES[(index + 1) % DIFFICULTIES.length].id);
+  });
   document.querySelector("#pause-button").addEventListener("click", pauseFlight);
   document.querySelector("#sound-toggle").addEventListener("click", (event) => {
     save.sound = !save.sound;
@@ -1029,6 +965,8 @@
   });
 
   updateWorldUI();
+  updateBirdPicker();
+  document.querySelector("#difficulty-label").textContent = currentDifficulty().label;
   updateFlightUI();
   updateJournal();
   const requestedTab = new URLSearchParams(window.location.search).get("tab");
