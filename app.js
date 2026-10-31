@@ -23,7 +23,7 @@
   const STORAGE_KEY = "littlewing-save-v1";
   const freshSave = () => ({ world: "meadow", bird: "poppy", difficulty: "easy", best: 0, flights: 0, gates: 0, visited: [], sound: true });
   let save = loadSave();
-  let tab = "flight";
+  let tab = "home";
   let mode = "ready";
   let worldId = save.world;
   let score = 0;
@@ -114,9 +114,9 @@
     document.querySelector("#home-bird-preview").innerHTML = pixelBirdSvg(bird);
     document.querySelector("#home-bird-name").textContent = bird.name;
     document.querySelector("#home-bird-note").textContent = bird.note.toUpperCase();
-    document.querySelector("#bird-dots").innerHTML = BIRDS.map((item) =>
-      `<button class="bird-dot${item.id === bird.id ? " active" : ""}" type="button" data-bird-id="${item.id}" aria-label="Choose ${item.name}" aria-pressed="${item.id === bird.id}"></button>`
-    ).join("");
+    document.querySelector("#setup-bird-name").textContent = bird.name;
+    document.querySelector("#game-bird-name").textContent = bird.name;
+    document.querySelector("#game-bird-preview").innerHTML = pixelBirdSvg(bird);
     const preview = document.querySelector("#bird-preview");
     preview.innerHTML = pixelBirdSvg(bird);
     preview.style.background = bird.bg;
@@ -127,6 +127,7 @@
     save.difficulty = id;
     persist();
     document.querySelector("#difficulty-label").textContent = currentDifficulty().label;
+    document.querySelector("#game-difficulty-label").textContent = currentDifficulty().label;
     resetFlight();
   }
 
@@ -642,7 +643,6 @@
     document.querySelector("#run-indicator").classList.remove("running", "paused");
     document.querySelector("#pause-chip").hidden = true;
     document.querySelector("#canvas-hint").classList.remove("is-hidden");
-    document.querySelector("#start-button span:first-child").textContent = "TRY AGAIN";
     playTone(190, .14, "triangle", .045);
     if (score > save.best) save.best = score;
     persist();
@@ -672,7 +672,7 @@
     if (!lastFrame) lastFrame = time;
     const delta = Math.min((time - lastFrame) / 16.667, 2);
     lastFrame = time;
-    if (document.hidden || tab !== "flight") return;
+    if (document.hidden || tab !== "game") return;
     sceneTime += Math.min(delta, 2) * 16.667;
     if (mode === "playing") {
       const difficulty = currentDifficulty();
@@ -740,7 +740,7 @@
     resetFlight();
     updateWorldUI();
     renderWorldGrid();
-    if (tab !== "flight") switchTab("flight");
+    if (tab !== "game") switchTab("game");
     else resizeCanvas();
   }
 
@@ -748,16 +748,15 @@
     const world = currentWorld();
     document.querySelector("#current-world-name").textContent = world.name;
     document.querySelector("#world-chip-art").textContent = world.icon;
-    const index = WORLDS.findIndex((item) => item.id === worldId);
-    document.querySelector("#next-world-name").textContent = world.name;
-    document.querySelector("#next-world-caption").textContent = `${world.mood} SKY · TAP TO CYCLE`;
-    document.querySelector("#next-world-art").textContent = world.icon;
-    document.querySelector(".world-spotlight .world-card-index").textContent = `${String(index + 1).padStart(2, "0")} / 06`;
+    document.querySelector("#home-world-name").textContent = world.name;
+    document.querySelector("#home-world-icon").textContent = world.icon;
+    document.querySelector("#game-world-name").textContent = world.name;
   }
 
   function switchTab(nextTab) {
-    if (!["flight", "worlds", "birds", "journal"].includes(nextTab)) return;
-    if (mode === "playing") pauseFlight();
+    if (nextTab === "flight") nextTab = "game";
+    if (!["home", "game", "worlds", "birds", "journal"].includes(nextTab)) return;
+    if (mode === "playing" && nextTab !== "game") pauseFlight();
     tab = nextTab;
     document.querySelectorAll(".nav-tab").forEach((button) => {
       const active = button.dataset.tab === tab;
@@ -773,7 +772,7 @@
     if (tab === "worlds") renderWorldGrid();
     if (tab === "birds") renderBirdGrid();
     if (tab === "journal") updateJournal();
-    if (tab === "flight") requestAnimationFrame(resizeCanvas);
+    if (tab === "game") requestAnimationFrame(resizeCanvas);
   }
 
   function paintThumbnail(canvasElement, world) {
@@ -912,23 +911,11 @@
     event.preventDefault();
     switchTab(button.dataset.tabLink);
   }));
+  document.querySelector("#launch-button").addEventListener("click", () => {
+    switchTab("game");
+    startFlight();
+  });
   document.querySelector("#start-button").addEventListener("click", startFlight);
-  document.querySelector("#next-world-button").addEventListener("click", () => {
-    const next = WORLDS[(WORLDS.findIndex((item) => item.id === worldId) + 1) % WORLDS.length];
-    setWorld(next.id);
-  });
-  document.querySelector("#bird-prev").addEventListener("click", () => {
-    const index = BIRDS.findIndex((bird) => bird.id === save.bird);
-    selectBird(BIRDS[(index - 1 + BIRDS.length) % BIRDS.length].id);
-  });
-  document.querySelector("#bird-next").addEventListener("click", () => {
-    const index = BIRDS.findIndex((bird) => bird.id === save.bird);
-    selectBird(BIRDS[(index + 1) % BIRDS.length].id);
-  });
-  document.querySelector("#bird-dots").addEventListener("click", (event) => {
-    const button = event.target.closest("[data-bird-id]");
-    if (button) selectBird(button.dataset.birdId);
-  });
   document.querySelector("#difficulty-button").addEventListener("click", () => {
     const index = DIFFICULTIES.findIndex((item) => item.id === save.difficulty);
     setDifficulty(DIFFICULTIES[(index + 1) % DIFFICULTIES.length].id);
@@ -950,11 +937,11 @@
   });
   window.addEventListener("pointerup", () => { pointerDown = false; });
   window.addEventListener("keydown", (event) => {
-    if (tab === "flight" && (event.code === "Space" || event.code === "ArrowUp")) {
+    if (tab === "game" && (event.code === "Space" || event.code === "ArrowUp")) {
       event.preventDefault();
       if (!event.repeat) flap();
     }
-    if (tab === "flight" && (event.code === "Escape" || event.code === "KeyP")) pauseFlight();
+    if (tab === "game" && (event.code === "Escape" || event.code === "KeyP")) pauseFlight();
   });
   window.addEventListener("resize", () => {
     resizeCanvas();
@@ -967,10 +954,11 @@
   updateWorldUI();
   updateBirdPicker();
   document.querySelector("#difficulty-label").textContent = currentDifficulty().label;
+  document.querySelector("#game-difficulty-label").textContent = currentDifficulty().label;
   updateFlightUI();
   updateJournal();
   const requestedTab = new URLSearchParams(window.location.search).get("tab");
-  if (["flight", "worlds", "birds", "journal"].includes(requestedTab) && requestedTab !== "flight") switchTab(requestedTab);
+  if (["home", "game", "flight", "worlds", "birds", "journal"].includes(requestedTab) && requestedTab !== "home") switchTab(requestedTab);
   resizeCanvas();
   requestAnimationFrame(tick);
 })();

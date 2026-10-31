@@ -8,7 +8,7 @@
     <img src="https://img.shields.io/badge/web-mobile-178dbb?style=flat-square" alt="Web and mobile">
     <img src="https://img.shields.io/badge/license-MIT-39434a?style=flat-square" alt="MIT license">
   </p>
-  <img src="screenshots/flight-desktop.png" alt="Flipping Bird home screen with its pixel-art game, bird selector, and flight controls" width="670">
+  <img src="screenshots/home-desktop.png" alt="Flipping Bird's hand-crafted pixel arcade home screen" width="670">
   <p><em>Choose a bird. Pick a sky. See how far you can fly.</em></p>
 </div>
 
@@ -31,11 +31,13 @@ Each map has its own palette and scenery. All six are open from the start.
 
 ## Play
 
-Tap or click the game, or press **Space** / **↑** to flap. Use **P** or **Esc** to pause. Fly between the gates to build your score.
+The game has its own screen, separate from bird and map selection. Click or tap the playfield, or press **Space** / **↑** to flap. Use **P** or **Esc** to pause. Fly between the gates to build your score.
 
-Pick from four birds, cycle between Easy, Normal, and Hard, turn sound effects on or off, and check your personal bests and flight log. Progress is saved in your browser.
+Pick from four birds, six maps, and Easy, Normal, or Hard flight modes. Sound, personal bests, and your flight log are available in their own controls and tabs. Progress is saved in your browser.
 
 <div align="center">
+  <img src="screenshots/flight-desktop.png" alt="Dedicated desktop gameplay screen with a portrait playfield and aligned score controls" width="670">
+  <br>
   <img src="screenshots/flight-mobile.png" alt="Responsive Flipping Bird game screen on a phone-sized viewport" width="280">
 </div>
 
@@ -47,7 +49,7 @@ No dependencies or build step are needed. Open `index.html`, or start a local se
 python -m http.server 8000
 ```
 
-Then open `http://localhost:8000` in a browser. The game supports mouse, touch, and keyboard input.
+Then open `http://localhost:8000` in a desktop or mobile browser. The game supports mouse, touch, and keyboard input.
 
 ## Files
 
@@ -59,6 +61,7 @@ Then open `http://localhost:8000` in a browser. The game supports mouse, touch, 
 └── screenshots/
     ├── flight-desktop.png
     ├── flight-mobile.png
+    ├── home-desktop.png
     └── worlds-desktop.png
 ```
 

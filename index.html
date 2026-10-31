@@ -14,7 +14,7 @@
   <body>
     <div class="app-shell">
       <header class="topbar">
-        <a class="brand" href="#" aria-label="Flipping Bird home" data-tab-link="flight">
+        <a class="brand" href="#" aria-label="Flipping Bird home" data-tab-link="home">
           <span class="brand-mark" aria-hidden="true">
             <svg viewBox="0 0 40 40" shape-rendering="crispEdges">
               <path d="M5 22h5v-8h5V9h10v5h6v5h5v9h-8v5H14v-5H8v-4H5Z" fill="#f5d75b" stroke="#171b20" stroke-width="3"/>
@@ -25,7 +25,8 @@
           <span class="brand-name">FLIPPING<span class="brand-period">BIRD</span></span>
         </a>
         <nav class="primary-nav" aria-label="Main navigation">
-          <button class="nav-tab active" data-tab="flight" aria-current="page"><span class="nav-icon">▶</span> PLAY</button>
+          <button class="nav-tab active" data-tab="home" aria-current="page"><span class="nav-icon">⌂</span> HOME</button>
+          <button class="nav-tab" data-tab="game"><span class="nav-icon">▶</span> GAME</button>
           <button class="nav-tab" data-tab="birds"><span class="nav-icon">◆</span> BIRDS</button>
           <button class="nav-tab" data-tab="worlds"><span class="nav-icon">▦</span> MAPS</button>
           <button class="nav-tab" data-tab="journal"><span class="nav-icon">★</span> SCORES</button>
@@ -37,17 +38,61 @@
       </header>
 
       <main>
-        <section class="page-section active" id="page-flight" aria-labelledby="flight-title">
-          <div class="page-heading">
-            <div class="title-lockup">
-              <div class="eyebrow"><span class="eyebrow-dot"></span> ONE MORE FLAP!</div>
-              <h1 id="flight-title"><span>FLIPPING</span><br>BIRD<span class="title-exclaim">!</span></h1>
-              <p class="heading-copy">Tiny wings. Big sky. How far can you fly?</p>
+        <section class="page-section active" id="page-home" aria-labelledby="home-title">
+          <div class="home-hero">
+            <div class="home-copy">
+              <div class="eyebrow"><span class="eyebrow-dot"></span> YOUR LITTLE PIXEL ARCADE</div>
+              <h1 id="home-title">READY,<br><span>SET, FLAP!</span></h1>
+              <p class="heading-copy">Pick your bird. Find your sky. Chase a new high score.</p>
+              <div class="home-cta-row">
+                <button class="start-button home-start-button" id="launch-button" type="button"><span>START A FLIGHT</span><span class="start-arrow">▶</span></button>
+                <div class="home-best"><span class="score-star">★</span><span><strong id="heading-best">0</strong><small>PERSONAL BEST</small></span></div>
+              </div>
             </div>
-            <div class="streak-pill" aria-label="Best score"><span class="score-star">★</span><span><b id="heading-best">0</b><small> BEST</small></span></div>
+            <div class="home-bird-scene">
+              <span class="scene-sun" aria-hidden="true"></span>
+              <span class="scene-cloud scene-cloud-one" aria-hidden="true"></span>
+              <span class="scene-cloud scene-cloud-two" aria-hidden="true"></span>
+              <span class="scene-hill scene-hill-back" aria-hidden="true"></span>
+              <span class="scene-hill scene-hill-front" aria-hidden="true"></span>
+              <span class="scene-star scene-star-one" aria-hidden="true">✦</span>
+              <span class="scene-star scene-star-two" aria-hidden="true">✦</span>
+              <div class="pixel-bird" id="home-bird-preview" aria-hidden="true"></div>
+              <div class="scene-caption"><span>FLYING WITH</span><strong id="home-bird-name">Poppy</strong><small id="home-bird-note">THE LITTLE DAYDREAMER</small></div>
+            </div>
           </div>
 
-          <div class="flight-layout">
+          <div class="home-setup">
+            <button class="setup-tile" type="button" data-tab-link="birds">
+              <span class="setup-tile-art bird-tile-art" aria-hidden="true">◆</span>
+              <span class="setup-tile-copy"><small>YOUR FLYER</small><strong id="setup-bird-name">Poppy</strong><span>Choose from four birds</span></span>
+              <span class="setup-tile-arrow" aria-hidden="true">↗</span>
+            </button>
+            <button class="setup-tile" type="button" data-tab-link="worlds">
+              <span class="setup-tile-art world-tile-art" id="home-world-icon" aria-hidden="true">☀</span>
+              <span class="setup-tile-copy"><small>YOUR MAP</small><strong id="home-world-name">Sunlit Meadow</strong><span>Six skies to explore</span></span>
+              <span class="setup-tile-arrow" aria-hidden="true">↗</span>
+            </button>
+            <div class="setup-tile difficulty-tile">
+              <span class="setup-tile-art mode-tile-art" aria-hidden="true">⚙</span>
+              <span class="setup-tile-copy"><small>FLIGHT MODE</small><strong id="difficulty-label">EASY</strong><span>Change the challenge</span></span>
+              <button class="difficulty-button" id="difficulty-button" type="button" aria-label="Change difficulty"><span>CHANGE</span><span aria-hidden="true">↻</span></button>
+            </div>
+          </div>
+          <p class="home-note"><span>✦</span> Your best runs and favorite skies stay saved on this device.</p>
+        </section>
+
+        <section class="page-section" id="page-game" aria-labelledby="game-title" hidden>
+          <div class="page-heading game-heading">
+            <div>
+              <div class="eyebrow"><span class="eyebrow-dot"></span> ARCADE MODE</div>
+              <h1 id="game-title">YOUR <span>FLIGHT.</span></h1>
+              <p class="heading-copy">A clean run, a clear sky, and one more flap.</p>
+            </div>
+            <button class="loadout-link" type="button" data-tab-link="home">EDIT LOADOUT <span aria-hidden="true">↗</span></button>
+          </div>
+
+          <div class="game-layout">
             <section class="game-card" aria-label="Flipping Bird game">
               <div class="game-card-top">
                 <div class="current-world-lockup"><span class="world-chip-art" id="world-chip-art">☀</span><span><small>NOW FLYING</small><strong id="current-world-name">Sunlit Meadow</strong></span></div>
@@ -59,52 +104,35 @@
                 <div class="pause-chip" id="pause-chip" hidden>Ⅱ &nbsp; PAUSED</div>
               </div>
               <div class="game-card-bottom">
-                <span id="game-footnote">PIXEL SKY ARCADE · EST. ONE MORE TRY</span>
-                <button class="pause-button" id="pause-button" aria-label="Pause game" title="Pause">Ⅱ</button>
+                <span id="game-footnote">TAP · CLICK · SPACE TO FLAP</span>
+                <span class="game-difficulty">MODE <strong id="game-difficulty-label">EASY</strong></span>
               </div>
             </section>
 
-            <aside class="flight-sidebar" aria-label="Game controls">
-              <div class="menu-stats-row">
+            <aside class="game-console" aria-label="Flight controls and score">
+              <div class="console-scoreboard">
                 <div class="score-card">
-                  <div class="score-heading"><span>THIS RUN</span><span class="score-star">✦</span></div>
+                  <div class="score-heading"><span>THIS FLIGHT</span><span class="score-star">✦</span></div>
                   <div class="score-number" id="score-value">00</div>
-                  <div class="best-row"><span>BEST</span><strong id="best-value">0</strong></div>
-                </div>
-                <div class="sidebar-card world-spotlight">
-                  <div class="sidebar-card-heading"><span>YOUR SKY</span><span class="world-card-index">01 / 06</span></div>
-                  <button class="next-world-button" id="next-world-button" aria-label="Choose the next map">
-                    <span class="next-world-art" id="next-world-art">🌾</span>
-                    <span class="next-world-text"><strong id="next-world-name">Amber Orchard</strong><small id="next-world-caption">Tap to change map</small></span>
-                    <span class="next-arrow">↻</span>
-                  </button>
+                  <div class="best-row"><span>PERSONAL BEST</span><strong id="best-value">0</strong></div>
                 </div>
               </div>
 
-              <section class="bird-picker" aria-label="Choose your bird">
-                <div class="picker-kicker">PICK YOUR FLYER <span>✦ 01 PLAYER ✦</span></div>
-                <button class="bird-step bird-step-left" id="bird-prev" type="button" aria-label="Previous bird">◀</button>
-                <div class="home-bird-lockup">
-                  <div class="home-bird-stage"><span class="bird-spark spark-left" aria-hidden="true">✦</span><div class="pixel-bird" id="home-bird-preview" aria-hidden="true"></div><span class="bird-spark spark-right" aria-hidden="true">✦</span></div>
-                  <strong id="home-bird-name">Poppy</strong>
-                  <small id="home-bird-note">THE LITTLE DAYDREAMER</small>
-                </div>
-                <button class="bird-step bird-step-right" id="bird-next" type="button" aria-label="Next bird">▶</button>
-                <div class="bird-dots" id="bird-dots" aria-label="Bird selection"></div>
-              </section>
-
-              <div class="difficulty-row">
-                <span class="difficulty-caption">FLIGHT MODE</span>
-                <button class="difficulty-button" id="difficulty-button" type="button" aria-label="Change difficulty"><span id="difficulty-label">EASY</span><span aria-hidden="true">▼</span></button>
+              <div class="console-loadout">
+                <div class="console-bird-preview pixel-bird" id="game-bird-preview" aria-hidden="true"></div>
+                <div><small>YOUR FLYER</small><strong id="game-bird-name">Poppy</strong><span id="game-world-name">Sunlit Meadow</span></div>
+                <span class="loadout-mark" aria-hidden="true">✦</span>
               </div>
 
-              <div class="tip-card"><span class="tip-sparkle">✦</span><p>One tap, one flap. Find your rhythm!</p></div>
-              <button class="start-button" id="start-button"><span>START GAME</span><span class="start-arrow">▶</span></button>
+              <div class="console-actions">
+                <button class="start-button" id="start-button" type="button"><span>START GAME</span><span class="start-arrow">▶</span></button>
+                <button class="pause-button" id="pause-button" type="button" aria-label="Pause game"><span>Ⅱ</span><span>PAUSE</span></button>
+              </div>
               <div class="quick-actions">
-                <button type="button" data-tab-link="worlds"><span aria-hidden="true">▦</span> MAP SELECT</button>
-                <button type="button" data-tab-link="journal"><span aria-hidden="true">★</span> HIGH SCORES</button>
+                <button type="button" data-tab-link="birds"><span aria-hidden="true">◆</span> BIRDS</button>
+                <button type="button" data-tab-link="worlds"><span aria-hidden="true">▦</span> MAPS</button>
               </div>
-              <span class="control-note"><span>FLAP</span> TAP · CLICK · SPACE</span>
+              <p class="game-controls-note">SPACE / ↑ FLAP <span>·</span> P / ESC PAUSE</p>
             </aside>
           </div>
           <footer class="page-footer"><span>FLY WITH FRIENDS <span class="footer-heart">♥</span></span><span>BUILT FOR ONE MORE TRY</span></footer>
