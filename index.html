@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#f5f2e9">
+    <meta name="description" content="Six skies, one little bird, and a world of hand-drawn adventures.">
+    <title>Littlewing — A hand-drawn sky adventure</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,600;9..144,700;9..144,800&family=Kalam:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <a class="brand" href="#" aria-label="Littlewing home" data-tab-link="flight">
+          <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 40 40"><path d="M7 23c5-1 9-6 11-12 5 3 8 7 8 12 4-3 8-4 11-3-4 8-10 12-18 12-5 0-9-3-12-9Z" fill="currentColor"/><circle cx="24" cy="19" r="1.4" fill="#f7f3e8"/><path d="m8 23 7 2" fill="none" stroke="#f7f3e8" stroke-linecap="round" stroke-width="1.5"/></svg></span>
+          <span class="brand-name">littlewing<span class="brand-period">.</span></span>
+        </a>
+        <nav class="primary-nav" aria-label="Main navigation">
+          <button class="nav-tab active" data-tab="flight" aria-current="page"><span class="nav-icon">↗</span> Flight</button>
+          <button class="nav-tab" data-tab="worlds"><span class="nav-icon">◌</span> Worlds</button>
+          <button class="nav-tab" data-tab="birds"><span class="nav-icon">✳</span> Birds</button>
+          <button class="nav-tab" data-tab="journal"><span class="nav-icon">▤</span> Journal</button>
+        </nav>
+        <div class="topbar-right">
+          <span class="sound-label">SOUND</span>
+          <button class="sound-toggle" id="sound-toggle" aria-label="Turn sound off" title="Toggle sound"><span></span></button>
+          <span class="avatar" aria-label="Your bird">✳</span>
+        </div>
+      </header>
+
+      <main>
+        <section class="page-section active" id="page-flight" aria-labelledby="flight-title">
+          <div class="page-heading">
+            <div>
+              <div class="eyebrow"><span class="eyebrow-dot"></span> YOUR LITTLE ADVENTURE</div>
+              <h1 id="flight-title">The sky is <span>yours.</span></h1>
+              <p class="heading-copy">A tiny bird. A big, hand-drawn world. How far can you go?</p>
+            </div>
+            <div class="streak-pill"><span>✳</span><span><b id="heading-best">0</b> best flight</span></div>
+          </div>
+
+          <div class="flight-layout">
+            <section class="game-card" aria-label="Game area">
+              <div class="game-card-top">
+                <div class="current-world-lockup"><span class="world-chip-art" id="world-chip-art">☀</span><span><small>FLYING IN</small><strong id="current-world-name">Sunlit Meadow</strong></span></div>
+                <span class="live-indicator" id="run-indicator"><i></i><span id="run-label">READY WHEN YOU ARE</span></span>
+              </div>
+              <div class="canvas-wrap" id="canvas-wrap">
+                <canvas id="game-canvas" aria-label="Littlewing bird flight game. Tap, click, or press space to flap."></canvas>
+                <div class="canvas-hint" id="canvas-hint"><span class="hint-key">TAP</span><span>or press <kbd>SPACE</kbd> to flap</span></div>
+                <div class="pause-chip" id="pause-chip" hidden>Ⅱ &nbsp; PAUSED</div>
+              </div>
+              <div class="game-card-bottom">
+                <span id="game-footnote">Easy does it. Every little flap counts.</span>
+                <button class="pause-button" id="pause-button" aria-label="Pause game" title="Pause">Ⅱ</button>
+              </div>
+            </section>
+
+            <aside class="flight-sidebar">
+              <div class="score-card">
+                <div class="score-heading"><span>THIS FLIGHT</span><span class="score-star">✳</span></div>
+                <div class="score-number" id="score-value">00</div>
+                <div class="score-separator"></div>
+                <div class="best-row"><span>Personal best</span><strong><span id="best-value">0</span> <span class="best-cup">↑</span></strong></div>
+                <div class="score-caption">A new feather in your cap?</div>
+              </div>
+              <div class="sidebar-card world-spotlight">
+                <div class="sidebar-card-heading"><span>UP NEXT</span><button class="text-link" data-tab-link="worlds">ALL WORLDS ↗</button></div>
+                <button class="next-world-button" id="next-world-button">
+                  <span class="next-world-art" id="next-world-art">🌾</span>
+                  <span class="next-world-text"><strong id="next-world-name">Amber Orchard</strong><small id="next-world-caption">Golden leaves & gentle breezes</small></span>
+                  <span class="next-arrow">↗</span>
+                </button>
+              </div>
+              <div class="tip-card">
+                <span class="tip-sparkle">✳</span>
+                <div><span class="tip-label">A LITTLE TIP</span><p>Small, steady flaps beat a big panic flap. You've got this.</p></div>
+              </div>
+              <button class="start-button" id="start-button"><span>Take flight</span><span class="start-arrow">↗</span></button>
+              <span class="control-note"><span>TO FLAP</span> tap · click · space</span>
+            </aside>
+          </div>
+          <footer class="page-footer"><span>MADE SLOWLY, WITH A LOT OF LOVE <span class="footer-heart">♥</span></span><span>TAKE A BREATH. THEN TAKE FLIGHT.</span></footer>
+        </section>
+
+        <section class="page-section" id="page-worlds" aria-labelledby="worlds-title" hidden>
+          <div class="page-heading simple-heading">
+            <div><div class="eyebrow"><span class="eyebrow-dot"></span> SIX LITTLE PLACES TO GO</div><h1 id="worlds-title">Pick your <span>sky.</span></h1><p class="heading-copy">Every world is drawn by hand and has its own kind of magic.</p></div>
+            <div class="collection-count"><strong>06</strong><span>WORLDS<br>TO EXPLORE</span></div>
+          </div>
+          <div class="world-grid" id="world-grid"></div>
+          <div class="worlds-note"><span>✳</span> Every world is open from the start. The only key you need is a little courage.</div>
+        </section>
+
+        <section class="page-section" id="page-birds" aria-labelledby="birds-title" hidden>
+          <div class="page-heading simple-heading">
+            <div><div class="eyebrow"><span class="eyebrow-dot"></span> FIND YOUR WINGS</div><h1 id="birds-title">A bird of <span>your own.</span></h1><p class="heading-copy">Choose a little friend to come along for the ride.</p></div>
+            <div class="bird-preview-card"><div class="bird-preview" id="bird-preview">✿</div><span>YOUR CURRENT BIRD</span></div>
+          </div>
+          <div class="bird-grid" id="bird-grid"></div>
+          <div class="birds-note"><span>✳</span> Just a different coat of feathers. All birds fly exactly the same.</div>
+        </section>
+
+        <section class="page-section" id="page-journal" aria-labelledby="journal-title" hidden>
+          <div class="page-heading simple-heading">
+            <div><div class="eyebrow"><span class="eyebrow-dot"></span> YOUR ADVENTURE, SO FAR</div><h1 id="journal-title">Little <span>by little.</span></h1><p class="heading-copy">Every flap counts. Here’s a keepsake of the skies you’ve crossed.</p></div>
+            <div class="collection-count"><strong id="journal-world-count">00</strong><span>WORLDS<br>VISITED</span></div>
+          </div>
+          <div class="journal-summary">
+            <article class="journal-stat"><span class="stat-doodle">✳</span><span class="stat-label">FLIGHTS TAKEN</span><strong id="stat-flights">0</strong><span class="stat-sub">Every journey matters.</span></article>
+            <article class="journal-stat"><span class="stat-doodle">↗</span><span class="stat-label">YOUR BEST FLIGHT</span><strong id="stat-best">0 <small>gates</small></strong><span class="stat-sub">One lovely little record.</span></article>
+            <article class="journal-stat"><span class="stat-doodle">◌</span><span class="stat-label">GATES CLEARED</span><strong id="stat-gates">0</strong><span class="stat-sub">One flap at a time.</span></article>
+          </div>
+          <div class="journal-bottom">
+            <section class="visited-card"><div class="section-heading"><div><div class="eyebrow">POSTCARDS FROM THE SKY</div><h2>Places you’ve been</h2></div><span id="visited-count">0 / 6</span></div><div class="visited-list" id="visited-list"></div></section>
+            <aside class="quote-card"><span class="quote-mark">“</span><p>The smallest wings can still find their way across a very big sky.</p><span class="quote-credit">A LITTLEWING REMINDER</span><div class="quote-bird">✳</div></aside>
+          </div>
+        </section>
+      </main>
+    </div>
+    <script src="app.js"></script>
+  </body>
+</html>
